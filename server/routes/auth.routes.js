@@ -8,4 +8,6 @@ router.get('/', (req, res) => {
 
 router.post('/signup', authControllers.registerUser)
 
+router.post('/signin', authControllers.signInUser)
+
 module.exports = router

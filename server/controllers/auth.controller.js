@@ -37,5 +37,16 @@ module.exports.authControllers = {
     } catch (error) {
       res.status(500).json({ error: error.message })
     }
+  },
+
+  /**
+   * LOGIN Endpoint
+   */
+  signInUser: async (req, res, next) => {
+    try {
+      // 
+    } catch (error) {
+      return res.status(500).json({ error })
+    }
   }
 }
