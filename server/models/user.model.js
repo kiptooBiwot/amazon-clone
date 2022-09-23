@@ -32,6 +32,6 @@ const userSchema = Schema({
     default: 'user'
   }
   // Cart
-})
+}, { timestamps: true })
 
 module.exports = model('User', userSchema)
