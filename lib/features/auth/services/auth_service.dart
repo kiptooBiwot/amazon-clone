@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:amazon_clone/common/widgets/bottom_bar.dart';
 import 'package:amazon_clone/constants/error_handling.dart';
 import 'package:amazon_clone/constants/global_variables.dart';
 import 'package:amazon_clone/constants/show_snackbar.dart';
@@ -40,11 +41,13 @@ class AuthService {
           response: res,
           context: context,
           onSuccess: () {
-            showSnackBar(
-                context, 'Your account has been created. Login to proceed');
+            print('Your account has been created. Login to proceed');
+            // showSnackBar(
+            //     context, 'Your account has been created. Login to proceed');
           });
     } catch (e) {
-      showSnackBar(context, e.toString());
+      print(e.toString());
+      // showSnackBar(context, e.toString());
     }
   }
 
@@ -78,13 +81,57 @@ class AuthService {
 
           Navigator.pushNamedAndRemoveUntil(
             context,
-            HomeScreen.routeName,
+            BottomBar.routeName,
             (route) => false,
           );
         },
       );
     } catch (e) {
-      showSnackBar(context, e.toString());
+      print(e.toString());
+      // showSnackBar(context, e.toString());
+    }
+  }
+
+  // get user data on initial installation or on load
+  void getUserData(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('x-auth-token');
+
+      if (token == null) {
+        prefs.setString('x-auth-token', '');
+      }
+
+      http.Response tokenResponse = await http.post(
+        Uri.parse('$uri/api/v1/auth/tokenIsValid'),
+
+        // Pass x-auth-token in the header
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'x-auth-token': token!
+        },
+      );
+
+      var response = jsonDecode(tokenResponse.body);
+
+      // Response can either be true or false as per the tokenIsValid API endpoint
+      if (response == true) {
+        // Get user data
+        http.Response userResponse = await http.get(
+          Uri.parse('$uri/api/v1/auth/'),
+          // Pass x-auth-token in the header
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'x-auth-token': token
+          },
+        );
+
+        var userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.setUser(userResponse.body);
+      }
+    } catch (e) {
+      print(e.toString());
+      // showSnackBar(context, e.toString());
     }
   }
 }

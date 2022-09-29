@@ -67,12 +67,51 @@ module.exports.authControllers = {
       }
       // Sign the payload into a jwt token
 
-      const token = jwt.sign({ id: userExists._id }, "ranomStringOfWords")
+      const token = jwt.sign({ id: userExists._id }, process.env.SECRET_KEY)
 
       res.json({ token, ...userExists._doc })
       // Send the user with the token to the frontend  
     } catch (error) {
       return res.status(500).json({ error: error.message })
     }
+  },
+
+  /**
+   * VERIFY token
+   */
+  tokenIsValid: async (req, res, next) => {
+    try {
+      const token = req.header('x-auth-token')
+
+      if (!token) return res.json(false)
+
+      // Verify token
+      const verified = jwt.verify(token, process.env.SECRET_KEY)
+
+      if (!verified) return res.json(false)
+
+      const user = await User.findById(verified.id)
+
+      if (!user) return res.json(false)
+
+      res.json(true)
+    } catch (error) {
+      return res.status(500).json({ error: error.message })
+    }
+  },
+
+  /**
+   * GET a verified user from auth middleware
+   */
+  getVerifiedUser: async (req, res, next) => {
+    try {
+      const user = await User.findById(req.user)
+      res.json({ ...user._doc, token: req.token })
+
+    } catch (error) {
+      return res.status(500).json({ error: error.message })
+    }
   }
+
+
 }
